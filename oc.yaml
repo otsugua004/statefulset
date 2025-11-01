@@ -64,4 +64,4 @@ spec:
         resources:
           requests:
             storage: 1Gi
-        storageClassName: "standard"  # Ajusta según tu clúster
+        storageClassName: "gp3"  # Ajusta según tu clúster
