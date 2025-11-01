@@ -1,4 +1,13 @@
 apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+type: Opaque
+data:
+  password: cGFzc3dvcmQ=  # 'password' en base64
+
+---
+apiVersion: v1
 kind: Service
 metadata:
   name: postgres
@@ -26,25 +35,27 @@ spec:
       labels:
         app: postgres
     spec:
+      securityContext:
+        fsGroup: 1001310000  # Permite acceso al volumen
       containers:
         - name: postgres
-          image: postgres:15
+          image: registry.redhat.io/rhel8/postgresql-15  # Imagen compatible con OpenShift
           ports:
             - containerPort: 5432
               name: postgres
           env:
-            - name: POSTGRES_DB
+            - name: POSTGRESQL_DATABASE
               value: mydb
-            - name: POSTGRES_USER
+            - name: POSTGRESQL_USER
               value: admin
-            - name: POSTGRES_PASSWORD
+            - name: POSTGRESQL_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: postgres-secret
                   key: password
           volumeMounts:
             - name: postgres-data
-              mountPath: /var/lib/postgresql/data
+              mountPath: /var/lib/pgsql/data
   volumeClaimTemplates:
     - metadata:
         name: postgres-data
@@ -53,12 +64,4 @@ spec:
         resources:
           requests:
             storage: 1Gi
-
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: postgres-secret
-type: Opaque
-data:
-  password: cGFzc3dvcmQ=  # base64 encoded 'password'
+        storageClassName: "standard"  # Ajusta según tu clúster
